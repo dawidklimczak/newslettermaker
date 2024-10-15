@@ -1,1 +1,8 @@
 streamlit
+requests
+bs4
+openai
+dotenv
+load_dotenv
+urllib
+streamlit_ace
