@@ -9,9 +9,6 @@ from streamlit_ace import st_ace
 # Set up OpenAI API key
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
-# Set up OpenAI client
-client = OpenAI()
-
 def get_article_content(url):
     try:
         response = requests.get(url)
@@ -144,35 +141,78 @@ def main():
             st.session_state.article_contents[url] = edited_content
             st.markdown("---")  # Add a separator between articles
         
-        if st.button("Generuj Newsletter"):
-            summaries = []
-            titles = []
+        if st.button("Generuj podsumowania"):
+            # Initialize or update summaries and titles in session state
+            if 'summaries' not in st.session_state:
+                st.session_state.summaries = {}
+            if 'titles' not in st.session_state:
+                st.session_state.titles = {}
+
             for url, content in st.session_state.article_contents.items():
                 with st.spinner(f'Generowanie podsumowania i tytułu dla: {url}'):
-                    summary = summarize_article(content)
-                    title = generate_title(content)
-                    summaries.append(summary)
-                    titles.append(title)
+                    if url not in st.session_state.summaries:
+                        st.session_state.summaries[url] = summarize_article(content)
+                    if url not in st.session_state.titles:
+                        st.session_state.titles[url] = generate_title(content)
+
+            st.success("Podsumowania wygenerowane. Możesz je teraz edytować.")
+
+        # Display editable summaries if they exist
+        if 'summaries' in st.session_state and 'titles' in st.session_state:
+            st.header("Edycja podsumowań")
             
-            newsletter_html = create_newsletter(titles, summaries, st.session_state.article_contents.keys())
-            
-            # Display newsletter preview
-            st.subheader("Podgląd newslettera")
-            st.components.v1.html(newsletter_html, height=600, scrolling=True)
-            
-            # Display editable HTML code with syntax highlighting
-            st.subheader("Kod HTML newslettera")
-            st.markdown("Poniżej znajduje się edytowalny kod HTML newslettera. Możesz go modyfikować wedle potrzeb:")
-            edited_html = st_ace(
-                value=newsletter_html,
-                language="html",
-                theme="monokai",
-                key="html_editor",
-                height=400
-            )
-            
-            if edited_html != newsletter_html:
-                st.success("Kod HTML został zmodyfikowany. Możesz go teraz skopiować i użyć.")
+            for url in st.session_state.article_contents.keys():
+                st.subheader(f"Podsumowanie dla: {url}")
+                
+                # Editable title
+                edited_title = st.text_area(
+                    "Tytuł:",
+                    value=st.session_state.titles[url],
+                    height=100,
+                    key=f"edit_title_{url}"
+                )
+                st.session_state.titles[url] = edited_title
+
+                # Editable summary
+                edited_summary = st.text_area(
+                    "Podsumowanie:",
+                    value=st.session_state.summaries[url],
+                    height=200,
+                    key=f"edit_summary_{url}"
+                )
+                st.session_state.summaries[url] = edited_summary
+
+                # Regenerate button for this specific summary
+                if st.button("Wygeneruj ponownie", key=f"regenerate_{url}"):
+                    with st.spinner("Generuję nowe podsumowanie..."):
+                        st.session_state.summaries[url] = summarize_article(st.session_state.article_contents[url])
+                        st.session_state.titles[url] = generate_title(st.session_state.article_contents[url])
+                        st.experimental_rerun()
+
+                st.markdown("---")
+
+            # Generate final newsletter button
+            if st.button("Generuj końcowy newsletter"):
+                newsletter_html = create_newsletter(
+                    [st.session_state.titles[url] for url in st.session_state.article_contents.keys()],
+                    [st.session_state.summaries[url] for url in st.session_state.article_contents.keys()],
+                    st.session_state.article_contents.keys()
+                )
+                
+                # Display newsletter preview
+                st.subheader("Podgląd newslettera")
+                st.components.v1.html(newsletter_html, height=600, scrolling=True)
+                
+                # Display editable HTML code with syntax highlighting
+                st.subheader("Kod HTML newslettera")
+                st.markdown("Poniżej znajduje się edytowalny kod HTML newslettera. Możesz go modyfikować wedle potrzeb:")
+                edited_html = st_ace(
+                    value=newsletter_html,
+                    language="html",
+                    theme="monokai",
+                    key="html_editor",
+                    height=400
+                )
 
 if __name__ == "__main__":
     main()
