@@ -5,6 +5,10 @@ from openai import OpenAI
 import os
 from urllib.parse import urlparse
 from streamlit_ace import st_ace
+from streamlit_quill import st_quill
+
+# Set up OpenAI client
+client = OpenAI()
 
 # Set up OpenAI API key
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
@@ -59,7 +63,7 @@ def create_newsletter(titles, summaries, urls):
         newsletter_content += f"""
         <div style="background-color: white; margin-bottom: 20px; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
             <h2 style="color: #2980b9; margin-top: 0;">{title}</h2>
-            <p>{summary}</p>
+            <div>{summary}</div>
             <p><a href="{url}" style="color: #e74c3c; text-decoration: none;">Przeczytaj cały artykuł</a></p>
             <p style="color: #7f8c8d; font-size: 0.9em;">Źródło: {domain}</p>
         </div>
@@ -104,6 +108,12 @@ def create_newsletter(titles, summaries, urls):
 def main():
     st.title('Generator Newslettera')
 
+    # Initialize session state variables if they don't exist
+    if 'summaries' not in st.session_state:
+        st.session_state.summaries = {}
+    if 'titles' not in st.session_state:
+        st.session_state.titles = {}
+
     # Input for article URLs
     article_urls = st.text_area("Adresy artykułów (jeden URL na linię):")
     
@@ -112,6 +122,9 @@ def main():
         
         # Store the content in session state
         st.session_state.article_contents = {}
+        # Clear previous summaries and titles
+        st.session_state.summaries = {}
+        st.session_state.titles = {}
         
         for url in urls:
             with st.spinner(f'Pobieranie treści z: {url}'):
@@ -142,42 +155,36 @@ def main():
             st.markdown("---")  # Add a separator between articles
         
         if st.button("Generuj podsumowania"):
-            # Initialize or update summaries and titles in session state
-            if 'summaries' not in st.session_state:
-                st.session_state.summaries = {}
-            if 'titles' not in st.session_state:
-                st.session_state.titles = {}
-
             for url, content in st.session_state.article_contents.items():
                 with st.spinner(f'Generowanie podsumowania i tytułu dla: {url}'):
-                    if url not in st.session_state.summaries:
-                        st.session_state.summaries[url] = summarize_article(content)
-                    if url not in st.session_state.titles:
-                        st.session_state.titles[url] = generate_title(content)
+                    st.session_state.summaries[url] = summarize_article(content)
+                    st.session_state.titles[url] = generate_title(content)
 
             st.success("Podsumowania wygenerowane. Możesz je teraz edytować.")
 
         # Display editable summaries if they exist
-        if 'summaries' in st.session_state and 'titles' in st.session_state:
+        if st.session_state.summaries or st.session_state.titles:
             st.header("Edycja podsumowań")
             
             for url in st.session_state.article_contents.keys():
                 st.subheader(f"Podsumowanie dla: {url}")
                 
-                # Editable title
-                edited_title = st.text_area(
-                    "Tytuł:",
-                    value=st.session_state.titles[url],
-                    height=100,
+                # Editable title with rich text editor
+                st.markdown("### Tytuł:")
+                default_title = st.session_state.titles.get(url, "")
+                edited_title = st_quill(
+                    value=default_title,
+                    html=True,
                     key=f"edit_title_{url}"
                 )
                 st.session_state.titles[url] = edited_title
 
-                # Editable summary
-                edited_summary = st.text_area(
-                    "Podsumowanie:",
-                    value=st.session_state.summaries[url],
-                    height=200,
+                # Editable summary with rich text editor
+                st.markdown("### Podsumowanie:")
+                default_summary = st.session_state.summaries.get(url, "")
+                edited_summary = st_quill(
+                    value=default_summary,
+                    html=True,
                     key=f"edit_summary_{url}"
                 )
                 st.session_state.summaries[url] = edited_summary
@@ -193,26 +200,31 @@ def main():
 
             # Generate final newsletter button
             if st.button("Generuj końcowy newsletter"):
-                newsletter_html = create_newsletter(
-                    [st.session_state.titles[url] for url in st.session_state.article_contents.keys()],
-                    [st.session_state.summaries[url] for url in st.session_state.article_contents.keys()],
-                    st.session_state.article_contents.keys()
-                )
-                
-                # Display newsletter preview
-                st.subheader("Podgląd newslettera")
-                st.components.v1.html(newsletter_html, height=600, scrolling=True)
-                
-                # Display editable HTML code with syntax highlighting
-                st.subheader("Kod HTML newslettera")
-                st.markdown("Poniżej znajduje się edytowalny kod HTML newslettera. Możesz go modyfikować wedle potrzeb:")
-                edited_html = st_ace(
-                    value=newsletter_html,
-                    language="html",
-                    theme="monokai",
-                    key="html_editor",
-                    height=400
-                )
+                # Check if we have all necessary summaries and titles
+                if all(url in st.session_state.summaries and url in st.session_state.titles 
+                       for url in st.session_state.article_contents.keys()):
+                    newsletter_html = create_newsletter(
+                        [st.session_state.titles[url] for url in st.session_state.article_contents.keys()],
+                        [st.session_state.summaries[url] for url in st.session_state.article_contents.keys()],
+                        st.session_state.article_contents.keys()
+                    )
+                    
+                    # Display newsletter preview
+                    st.subheader("Podgląd newslettera")
+                    st.components.v1.html(newsletter_html, height=600, scrolling=True)
+                    
+                    # Display editable HTML code with syntax highlighting
+                    st.subheader("Kod HTML newslettera")
+                    st.markdown("Poniżej znajduje się edytowalny kod HTML newslettera. Możesz go modyfikować wedle potrzeb:")
+                    edited_html = st_ace(
+                        value=newsletter_html,
+                        language="html",
+                        theme="monokai",
+                        key="html_editor",
+                        height=400
+                    )
+                else:
+                    st.warning("Najpierw wygeneruj podsumowania dla wszystkich artykułów.")
 
 if __name__ == "__main__":
     main()
