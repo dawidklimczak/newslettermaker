@@ -7,11 +7,29 @@ from urllib.parse import urlparse
 from streamlit_ace import st_ace
 from streamlit_quill import st_quill
 
+
+st.set_page_config(
+    page_title="Newsletter Generator",
+    page_icon="📰",  # Ikona gazety
+    menu_items={
+        "Get Help": "mailto:dawid.klimczak@forum-media.pl",
+        "Report a bug": "mailto:dawid.klimczak@forum-media.pl",
+        'About': 'Generator newslettera'
+    }
+)
+
+# Set default settings if not exist
+if 'settings' not in st.session_state:
+    st.session_state.settings = {
+        'model': 'gpt-3.5-turbo',
+        'system_prompt_summary': """Jesteś wnikliwym analitykiem i literatem, który koncentruje się na tworzeniu treści publicystycznych o wysokiej wartości literackiej. Twoim zadaniem jest generowanie zwięzłych, maksymalnie 500-znakowych podsumowań tekstów. Unikaj fraz typu 'artykuł jest o...' lub innych banałów. Stawiaj na przyciągające uwagę, inspirujące i merytoryczne opisy, które zaintrygują czytelnika i wciągną go w treść. Wszystko w języku polskim.""",
+        'user_prompt_summary': """Na podstawie poniższego tekstu wygeneruj jego podsumowanie, które nie przekracza 500 znaków. Twórz atrakcyjny literacko opis w stylu publicystycznym, unikając wszelkich trywialnych sformułowań. Podsumowanie ma być angażujące, przemyślane i zachęcające do zgłębienia tematu, a jednocześnie precyzyjnie oddawać esencję tekstu.""",
+        'system_prompt_title': """Jesteś pomocnym asystentem, który generuje chwytliwe i informacyjne tytuły dla artykułów w języku polskim.""",
+        'user_prompt_title': """Wygeneruj chwytliwy i informacyjny tytuł dla tego artykułu w maksymalnie 10 słowach."""
+    }
+
 # Set up OpenAI client
 client = OpenAI()
-
-# Set up OpenAI API key
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
 def get_article_content(url):
     try:
@@ -32,10 +50,10 @@ def summarize_article(content):
     truncated_content = content[:max_tokens]
     
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model=st.session_state.settings['model'],
         messages=[
-            {"role": "system", "content": "Jesteś wnikliwym analitykiem i literatem, który koncentruje się na tworzeniu treści publicystycznych o wysokiej wartości literackiej. Twoim zadaniem jest generowanie zwięzłych, maksymalnie 500-znakowych podsumowań tekstów. Unikaj fraz typu 'artykuł jest o...' lub innych banałów. Stawiaj na przyciągające uwagę, inspirujące i merytoryczne opisy, które zaintrygują czytelnika i wciągną go w treść. Wszystko w języku polskim."},
-            {"role": "user", "content": f"Na podstawie poniższego tekstu wygeneruj jego podsumowanie, które nie przekracza 500 znaków. Twórz atrakcyjny literacko opis w stylu publicystycznym, unikając wszelkich trywialnych sformułowań. Podsumowanie ma być angażujące, przemyślane i zachęcające do zgłębienia tematu, a jednocześnie precyzyjnie oddawać esencję tekstu.:\n\n{truncated_content}"}
+            {"role": "system", "content": st.session_state.settings['system_prompt_summary']},
+            {"role": "user", "content": f"{st.session_state.settings['user_prompt_summary']}:\n\n{truncated_content}"}
         ]
     )
     return response.choices[0].message.content
@@ -45,10 +63,10 @@ def generate_title(content):
     truncated_content = content[:max_tokens]
     
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model=st.session_state.settings['model'],
         messages=[
-            {"role": "system", "content": "Jesteś pomocnym asystentem, który generuje chwytliwe i informacyjne tytuły dla artykułów w języku polskim."},
-            {"role": "user", "content": f"Wygeneruj chwytliwy i informacyjny tytuł dla tego artykułu w maksymalnie 10 słowach:\n\n{truncated_content}"}
+            {"role": "system", "content": st.session_state.settings['system_prompt_title']},
+            {"role": "user", "content": f"{st.session_state.settings['user_prompt_title']}:\n\n{truncated_content}"}
         ]
     )
     return response.choices[0].message.content
@@ -113,6 +131,11 @@ def main():
         st.session_state.summaries = {}
     if 'titles' not in st.session_state:
         st.session_state.titles = {}
+    if 'regenerate_url' not in st.session_state:
+        st.session_state.regenerate_url = None
+
+    # Display current model
+    st.sidebar.markdown(f"**Aktualny model:** {st.session_state.settings['model']}")
 
     # Input for article URLs
     article_urls = st.text_area("Adresy artykułów (jeden URL na linię):")
@@ -152,8 +175,8 @@ def main():
                 )
             
             st.session_state.article_contents[url] = edited_content
-            st.markdown("---")  # Add a separator between articles
-        
+            st.markdown("---")
+
         if st.button("Generuj podsumowania"):
             for url, content in st.session_state.article_contents.items():
                 with st.spinner(f'Generowanie podsumowania i tytułu dla: {url}'):
@@ -169,38 +192,49 @@ def main():
             for url in st.session_state.article_contents.keys():
                 st.subheader(f"Podsumowanie dla: {url}")
                 
-                # Editable title with rich text editor
-                st.markdown("### Tytuł:")
-                default_title = st.session_state.titles.get(url, "")
-                edited_title = st_quill(
-                    value=default_title,
-                    html=True,
-                    key=f"edit_title_{url}"
-                )
-                st.session_state.titles[url] = edited_title
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    # Editable title with rich text editor
+                    st.markdown("### Tytuł:")
+                    default_title = st.session_state.titles.get(url, "")
+                    edited_title = st_quill(
+                        value=default_title,
+                        html=True,
+                        key=f"edit_title_{url}"
+                    )
+                    st.session_state.titles[url] = edited_title
 
-                # Editable summary with rich text editor
-                st.markdown("### Podsumowanie:")
-                default_summary = st.session_state.summaries.get(url, "")
-                edited_summary = st_quill(
-                    value=default_summary,
-                    html=True,
-                    key=f"edit_summary_{url}"
-                )
-                st.session_state.summaries[url] = edited_summary
+                    # Editable summary with rich text editor
+                    st.markdown("### Podsumowanie:")
+                    default_summary = st.session_state.summaries.get(url, "")
+                    edited_summary = st_quill(
+                        value=default_summary,
+                        html=True,
+                        key=f"edit_summary_{url}"
+                    )
+                    st.session_state.summaries[url] = edited_summary
 
-                # Regenerate button for this specific summary
-                if st.button("Wygeneruj ponownie", key=f"regenerate_{url}"):
+                with col2:
+                    # Regenerate button for this specific summary
+                    if st.button("Wygeneruj ponownie", key=f"regenerate_{url}"):
+                        st.session_state.regenerate_url = url
+                        st.rerun()
+
+                # Handle regeneration for this specific URL
+                if st.session_state.regenerate_url == url:
                     with st.spinner("Generuję nowe podsumowanie..."):
-                        st.session_state.summaries[url] = summarize_article(st.session_state.article_contents[url])
-                        st.session_state.titles[url] = generate_title(st.session_state.article_contents[url])
-                        st.experimental_rerun()
+                        content = st.session_state.article_contents[url]
+                        new_summary = summarize_article(content)
+                        new_title = generate_title(content)
+                        st.session_state.summaries[url] = new_summary
+                        st.session_state.titles[url] = new_title
+                        st.session_state.regenerate_url = None
+                        st.rerun()
 
                 st.markdown("---")
 
             # Generate final newsletter button
             if st.button("Generuj końcowy newsletter"):
-                # Check if we have all necessary summaries and titles
                 if all(url in st.session_state.summaries and url in st.session_state.titles 
                        for url in st.session_state.article_contents.keys()):
                     newsletter_html = create_newsletter(
