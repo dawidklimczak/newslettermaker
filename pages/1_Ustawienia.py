@@ -16,7 +16,10 @@ if 'settings' not in st.session_state:
 st.header("Model OpenAI")
 models = [
     'gpt-4',
-    'gpt-4-0125-preview',
+    'gpt-4o',
+    'gpt-4o-mini',
+    'o1-mini',
+    'o1-preview',
     'gpt-4-turbo-preview',
     'gpt-3.5-turbo'
 ]
