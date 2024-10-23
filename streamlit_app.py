@@ -1,12 +1,6 @@
 import streamlit as st
-import requests
-from bs4 import BeautifulSoup
-from openai import OpenAI
-import os
-from urllib.parse import urlparse
-from streamlit_ace import st_ace
-from streamlit_quill import st_quill
 
+import streamlit as st
 
 st.set_page_config(
     page_title="Newsletter Generator",
@@ -17,6 +11,15 @@ st.set_page_config(
         'About': 'Generator newslettera'
     }
 )
+
+
+import requests
+from bs4 import BeautifulSoup
+from openai import OpenAI
+import os
+from urllib.parse import urlparse
+from streamlit_ace import st_ace
+from streamlit_quill import st_quill
 
 # Set default settings if not exist
 if 'settings' not in st.session_state:
