@@ -12,6 +12,16 @@ st.set_page_config(
     }
 )
 
+hide_st_app_toolbar = """
+    <style>
+    [data-testid="stAppToolbar"] {
+        visibility: hidden;
+    }
+    </style>
+    """
+
+st.markdown(hide_st_app_toolbar, unsafe_allow_html=True)
+
 
 import requests
 from bs4 import BeautifulSoup
