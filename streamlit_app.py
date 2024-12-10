@@ -115,7 +115,7 @@ def create_newsletter(titles, summaries, urls):
               <tr>
                 <td align="left" class="esd-block-text es-m-p10b">
                   <p class="b_description es-m-txt-l" style="font-size:14px;line-height:150%">
-                    {summaries}
+                    {summary}
                   </p>
                 </td>
               </tr>
@@ -164,6 +164,7 @@ def create_newsletter(titles, summaries, urls):
             {newsletter_content}
         </tbody>
     </table>
+    </td>
     """
     return newsletter_html
 
