@@ -86,8 +86,10 @@ def get_domain(url):
     return urlparse(url).netloc
 
 def create_newsletter(titles, summaries, urls):
+    total_news = len(titles)  # Suma wszystkich newsów
+    
     newsletter_content = ""
-    for title, summary, url in zip(titles, summaries, urls):
+    for index, (title, summary, url) in enumerate(zip(titles, summaries, urls), 1):  # start=1 zaczyna liczenie od 1
         domain = get_domain(url)
         newsletter_content += f"""
 <tr>
@@ -101,7 +103,7 @@ def create_newsletter(titles, summaries, urls):
               <tr>
                 <td align="center" class="esd-block-text">
                   <p style="font-size:12px">
-                    <em>1/7</em>
+                    <em>{index}/{total_news}</em>
                   </p>
                 </td>
               </tr>
