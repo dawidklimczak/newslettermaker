@@ -9,7 +9,7 @@ if 'settings' not in st.session_state:
         'system_prompt_summary': """Jesteś wnikliwym analitykiem i literatem, który koncentruje się na tworzeniu treści publicystycznych o wysokiej wartości literackiej. Twoim zadaniem jest generowanie zwięzłych, maksymalnie 500-znakowych podsumowań tekstów. Unikaj fraz typu 'artykuł jest o...' lub innych banałów. Stawiaj na przyciągające uwagę, inspirujące i merytoryczne opisy, które zaintrygują czytelnika i wciągną go w treść. Wszystko w języku polskim.""",
         'user_prompt_summary': """Na podstawie poniższego tekstu wygeneruj jego podsumowanie, które nie przekracza 500 znaków. Twórz atrakcyjny literacko opis w stylu publicystycznym, unikając wszelkich trywialnych sformułowań. Podsumowanie ma być angażujące, przemyślane i zachęcające do zgłębienia tematu, a jednocześnie precyzyjnie oddawać esencję tekstu.""",
         'system_prompt_title': """Jesteś pomocnym asystentem, który generuje chwytliwe i informacyjne tytuły dla artykułów w języku polskim.""",
-        'user_prompt_title': """Wygeneruj chwytliwy i informacyjny tytuł dla tego artykułu w maksymalnie 10 słowach."""
+        'user_prompt_title': """Wygeneruj chwytliwy i informacyjny tytuł dla tego artykułu w maksymalnie 10 słowach. Nie stosuj cudzysłowu. Stosuj zapis normalnie jak w zdaniu, NIE każde słowo od wielkiej litery"""
     }
 
 # Model selection
