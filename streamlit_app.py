@@ -1,7 +1,5 @@
 import streamlit as st
 
-import streamlit as st
-
 st.set_page_config(
     page_title="Newsletter Generator",
     page_icon="📰",  # Ikona gazety
@@ -92,47 +90,57 @@ def create_newsletter(titles, summaries, urls):
     for title, summary, url in zip(titles, summaries, urls):
         domain = get_domain(url)
         newsletter_content += f"""
-        <div style="background-color: white; margin-bottom: 20px; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-            <h2 style="color: #2980b9; margin-top: 0;">{title}</h2>
-            <div>{summary}</div>
-            <p><a href="{url}" style="color: #e74c3c; text-decoration: none;">Przeczytaj cały artykuł</a></p>
-            <p style="color: #7f8c8d; font-size: 0.9em;">Źródło: {domain}</p>
-        </div>
+        <tr>
+            <td align="left" class="esd-structure es-p20t es-p20b es-p20r es-p20l" style="background-color: #ffffff;">
+                <table cellpadding="0" cellspacing="0" width="100%">
+                    <tbody>
+                        <tr>
+                            <td width="560" class="esd-container-frame" align="center" valign="top">
+                                <table cellpadding="0" cellspacing="0" width="100%">
+                                    <tbody>
+                                        <tr>
+                                            <td align="left" class="esd-block-text">
+                                                <h2 style="color: #2980b9; font-family: arial,'helvetica neue',helvetica,sans-serif;">
+                                                    {title}
+                                                </h2>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="left" class="esd-block-text es-p10t es-p10b">
+                                                <p style="font-family: arial,'helvetica neue',helvetica,sans-serif;">
+                                                    {summary}
+                                                </p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="left" class="esd-block-text es-p10t">
+                                                <p style="font-size: 14px; font-family: arial,'helvetica neue',helvetica,sans-serif;">
+                                                    <a href="{url}" target="_blank" style="color: #e74c3c; text-decoration: none;">
+                                                        Przeczytaj cały artykuł
+                                                    </a>
+                                                </p>
+                                                <p style="font-size: 12px; color: #7f8c8d; font-family: arial,'helvetica neue',helvetica,sans-serif;">
+                                                    Źródło: {domain}
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
         """
 
+    # Teraz całość opakujemy w tabelę główną
     newsletter_html = f"""
-    <!DOCTYPE html>
-    <html lang="pl">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Newsletter Tygodniowy</title>
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                max-width: 800px;
-                margin: 0 auto;
-                padding: 20px;
-                background-color: #f4f4f4;
-            }}
-            .header {{
-                background-color: #3498db;
-                color: white;
-                padding: 20px;
-                text-align: center;
-                border-radius: 5px 5px 0 0;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <h1>Newsletter Tygodniowy</h1>
-        </div>
-        {newsletter_content}
-    </body>
-    </html>
+    <table cellpadding="0" cellspacing="0" width="600" align="center" style="background-color: #f4f4f4; margin: 0 auto;">
+        <tbody>
+            {newsletter_content}
+        </tbody>
+    </table>
     """
     return newsletter_html
 
