@@ -2,7 +2,7 @@ import streamlit as st
 
 st.title("Ustawienia")
 
-# Initialize settings if not exists
+# Initialize settings if not exists rer
 if 'settings' not in st.session_state:
     st.session_state.settings = {
         'model': 'gpt-3.5-turbo',
