@@ -90,54 +90,77 @@ def create_newsletter(titles, summaries, urls):
     for title, summary, url in zip(titles, summaries, urls):
         domain = get_domain(url)
         newsletter_content += f"""
-        <tr>
-            <td align="left" class="esd-structure es-p20t es-p20b es-p20r es-p20l" style="background-color: #ffffff;">
-                <table cellpadding="0" cellspacing="0" width="100%">
+<tr>
+  <td align="left" class="es-p20t es-p20r es-p20l esd-structure">
+  <table cellpadding="0" cellspacing="0" align="right" class="es-right">
+    <tbody>
+      <tr>
+        <td width="560" align="left" class="es-m-p20b esd-container-frame">
+          <table cellpadding="0" cellspacing="0" width="100%">
+            <tbody>
+              <tr>
+                <td align="center" class="esd-block-text">
+                  <p style="font-size:12px">
+                    <em>1/7</em>
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td align="left" class="esd-block-text es-p10t es-p10b">
+                  <h3 class="b_title" style="font-size:25px;line-height:100%;font-family:georgia,times,&#39;times new roman&#39;,serif">
+                    {title}
+                  </h3>
+                </td>
+              </tr>
+              <tr>
+                <td align="left" class="esd-block-text es-m-p10b">
+                  <p class="b_description es-m-txt-l" style="font-size:14px;line-height:150%">
+                    {summaries}
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td align="right" class="esd-block-button">
+                  <span class="es-button-border es-m-il es-button-border-7748" style="background:#fad02c;border:1px solid #fad02c">
+                    <a href="{url}" target="_blank" class="es-button es-button-7808" style="font-size:14px;font-family:arial,&#39;helvetica neue&#39;,helvetica,sans-serif;background:#fad02c;mso-border-alt:10px solid #fad02c;font-weight:bold">
+                      Przejdź do artykułu
+                    </a>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td align="left" class="esd-block-text es-p5t es-text-9242">
+                  <p class="b_description es-text-mobile-size-14 es-m-txt-l" style="font-size:14px;line-height:150%;color:#999999">
+                    <em>Źródło: {domain}</em>
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td align="center" class="esd-block-spacer es-p20" style="font-size:0">
+                  <table cellpadding="0" cellspacing="0" border="0" width="100%" height="100%" class="es-spacer">
                     <tbody>
-                        <tr>
-                            <td width="560" class="esd-container-frame" align="center" valign="top">
-                                <table cellpadding="0" cellspacing="0" width="100%">
-                                    <tbody>
-                                        <tr>
-                                            <td align="left" class="esd-block-text">
-                                                <h2 style="color: #2980b9; font-family: arial,'helvetica neue',helvetica,sans-serif;">
-                                                    {title}
-                                                </h2>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td align="left" class="esd-block-text es-p10t es-p10b">
-                                                <p style="font-family: arial,'helvetica neue',helvetica,sans-serif;">
-                                                    {summary}
-                                                </p>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td align="left" class="esd-block-text es-p10t">
-                                                <p style="font-size: 14px; font-family: arial,'helvetica neue',helvetica,sans-serif;">
-                                                    <a href="{url}" target="_blank" style="color: #e74c3c; text-decoration: none;">
-                                                        Przeczytaj cały artykuł
-                                                    </a>
-                                                </p>
-                                                <p style="font-size: 12px; color: #7f8c8d; font-family: arial,'helvetica neue',helvetica,sans-serif;">
-                                                    Źródło: {domain}
-                                                </p>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
+                      <tr>
+                        <td style="width:100%;margin:0px 0px 0px 0px;border-bottom:1px solid #cccccc;background:none;height:1px"></td>
+                      </tr>
                     </tbody>
-                </table>
-            </td>
-        </tr>
+                  </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</td>
+</tr>
         """
 
     # Teraz całość opakujemy w tabelę główną
     newsletter_html = f"""
-    <table cellpadding="0" cellspacing="0" width="600" align="center" style="background-color: #f4f4f4; margin: 0 auto;">
-        <tbody>
+    <td align="center" class="esd-stripe">
+  <table bgcolor="#ffffff" align="center" cellpadding="0" cellspacing="0" width="600" class="es-content-body">
+    <tbody>
             {newsletter_content}
         </tbody>
     </table>
