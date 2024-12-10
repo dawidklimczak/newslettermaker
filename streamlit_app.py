@@ -82,6 +82,16 @@ def generate_title(content):
     )
     return response.choices[0].message.content
 
+def clean_quill_content(html_content):
+    """
+    Usuwa zewnętrzne tagi <p> zachowując formatowanie wewnętrzne
+    """
+    if not html_content:
+        return ""
+    if html_content.startswith('<p>') and html_content.endswith('</p>'):
+        return html_content[3:-4]  # usuwa pierwsze <p> i ostatnie </p>
+    return html_content
+
 def get_domain(url):
     return urlparse(url).netloc
 
@@ -91,6 +101,9 @@ def create_newsletter(titles, summaries, urls):
     newsletter_content = ""
     for index, (title, summary, url) in enumerate(zip(titles, summaries, urls), 1):  # start=1 zaczyna liczenie od 1
         domain = get_domain(url)
+        # Czyszczenie tytułu i podsumowania z tagów <p>
+        cleaned_title = clean_quill_content(title)
+        cleaned_summary = clean_quill_content(summary)
         newsletter_content += f"""
 <tr>
   <td align="left" class="es-p20t es-p20r es-p20l esd-structure">
@@ -110,14 +123,14 @@ def create_newsletter(titles, summaries, urls):
               <tr>
                 <td align="left" class="esd-block-text es-p10t es-p10b">
                   <h3 class="b_title" style="font-size:25px;line-height:100%;font-family:georgia,times,&#39;times new roman&#39;,serif">
-                    {title}
+                    {cleaned_title}
                   </h3>
                 </td>
               </tr>
               <tr>
                 <td align="left" class="esd-block-text es-m-p10b">
                   <p class="b_description es-m-txt-l" style="font-size:14px;line-height:150%">
-                    {summary}
+                    {cleaned_summary}
                   </p>
                 </td>
               </tr>
@@ -249,7 +262,7 @@ def main():
                         html=True,
                         key=f"edit_title_{url}"
                     )
-                    st.session_state.titles[url] = edited_title
+                    st.session_state.titles[url] = clean_quill_content(edited_title) 
 
                     # Editable summary with rich text editor
                     st.markdown("### Podsumowanie:")
@@ -259,7 +272,7 @@ def main():
                         html=True,
                         key=f"edit_summary_{url}"
                     )
-                    st.session_state.summaries[url] = edited_summary
+                    st.session_state.summaries[url] = clean_quill_content(edited_summary)
 
                 with col2:
                     # Regenerate button for this specific summary
